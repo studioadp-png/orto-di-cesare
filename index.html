@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cesare Rosati - L'Orto di Cesare</title>
+    
+    <meta name="theme-color" content="#1b5e20">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Orto di Cesare">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        brand: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        orto: {
+                            green: '#2e7d32',
+                            dark: '#1b5e20',
+                            light: '#f1f8e9',
+                            accent: '#81c784',
+                            terracotta: '#c65102',
+                            bg: '#f4f8f1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f4f8f1;
+            background-image: radial-gradient(#81c78422 0.6px, transparent 0.6px);
+            background-size: 22px 22px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .fade-in { animation: fadeIn 0.25s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen">
+
+    <!-- Banner Installazione -->
+    <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 z-40 max-w-md mx-auto bg-orto-dark text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-orto-green text-xl">🌱</div>
+            <div>
+                <p class="font-bold text-sm">Installa l'App</p>
+                <p class="text-xs text-green-200">Aggiungila alla Home</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button id="btn-pwa-install" class="bg-orto-terracotta text-white font-bold px-4 py-2 rounded-xl text-sm">Installa</button>
+            <button onclick="document.getElementById('pwa-install-banner').classList.add('hidden')" class="text-green-200 px-2">✕</button>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-3 py-4 sm:px-6 sm:py-6">
+        <div class="bg-white rounded-3xl shadow-xl border border-green-100 overflow-hidden">
+
+            <!-- HEADER -->
+            <header class="bg-gradient-to-br from-white via-green-50 to-emerald-50 border-b-4 border-orto-green px-5 py-6 sm:px-8">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-5">
+                    <div class="flex items-center gap-5">
+                        <div class="w-28 h-28 sm:w-36 sm:h-36 flex-shrink-0 bg-white rounded-2xl shadow-lg border-2 border-orto-accent overflow-hidden flex items-center justify-center p-1">
+                            <img src="logo.png" alt="Logo L'Orto di Cesare" class="w-full h-full object-contain">
+                        </div>
+                        <div class="text-center sm:text-left">
+                            <div class="inline-flex items-center gap-1.5 bg-green-100 text-orto-dark text-xs font-bold px-3 py-1 rounded-full mb-1">
+                                <i class="fas fa-seedling"></i> Raccolto Fresco Km 0
+                            </div>
+                            <h1 class="font-brand text-3xl sm:text-4xl font-bold tracking-tight">
+                                <span class="text-orto-dark">CESARE</span> <span class="text-orto-terracotta">ROSATI</span>
+                            </h1>
+                            <p class="font-brand text-orto-green font-semibold tracking-widest text-sm">L'ORTO DI CESARE</p>
+                        </div>
+                    </div>
+
+                    <div class="flex bg-white rounded-2xl p-1.5 shadow-sm border border-green-100">
+                        <button onclick="impostaModalita('cliente')" id="btn-cliente" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-orto-green text-white">
+                            <i class="fas fa-store mr-1"></i> Negozio
+                        </button>
+                        <button onclick="richiediAccessoAdmin()" id="btn-admin" class="px-5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-green-50">
+                            <i class="fas fa-user-shield mr-1"></i> Area Cesare
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- VISTA CLIENTE -->
+            <div id="view-cliente" class="p-5 sm:p-8">
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h2 class="font-brand text-2xl font-bold text-orto-dark">Ordina i prodotti freschi di oggi</h2>
+                        <p class="text-slate-600 text-sm mt-1">Seleziona dal menu a tendina e invia l’ordine. <strong>IVA 4% inclusa</strong>.</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-green-200 shadow-sm">
+                        <span class="text-2xl">🛒</span>
+                        <div>
+                            <div id="cart-count" class="font-bold text-orto-dark">0 articoli</div>
+                            <div id="cart-header-total" class="font-brand font-bold text-orto-terracotta">0.00 €</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-12 gap-8">
+                    <!-- Selezione a tendina + Catalogo visivo -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <div class="bg-white rounded-2xl border-2 border-orto-green p-6 shadow-sm">
+                            <h3 class="font-brand text-xl font-bold text-orto-dark mb-4"><i class="fas fa-list mr-2"></i>Seleziona Articolo</h3>
+                            <div class="flex flex-col sm:flex-row gap-3 items-end">
+                                <select id="select-prodotto" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-orto-green">
+                                    <option value="">-- Scegli un prodotto --</option>
+                                </select>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="select-qty" value="1" min="0.1" step="0.5" class="w-24 px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-center font-bold outline-none">
+                                    <span id="unit-display" class="text-sm font-bold text-orto-dark bg-green-100 px-3 py-3 rounded-xl min-w-[70px] text-center">unità</span>
+                                </div>
+                                <button onclick="aggiungiDaSelect()" class="bg-orto-green hover:bg-orto-dark text-white font-bold px-6 py-3 rounded-xl transition">Aggiungi</button>
+                            </div>
+                            <div id="select-preview" class="mt-4 text-sm text-slate-600"></div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-brand text-xl font-bold text-orto-dark mb-4"><i class="fas fa-leaf text-orto-green mr-2"></i>Listino del Giorno</h3>
+                            <div id="catalogo-grid" class="grid sm:grid-cols-2 gap-4"></div>
+                        </div>
+                    </div>
+
+                    <!-- Carrello -->
+                    <div class="lg:col-span-5">
+                        <div class="bg-white rounded-3xl border-2 border-green-200 shadow-lg p-6 sticky top-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-brand text-xl font-bold text-orto-dark">Riepilogo Ordine</h3>
+                                <button onclick="svuotaCarrello()" class="text-xs text-red-500 hover:underline font-semibold">Svuota</button>
+                            </div>
+
+                            <div class="max-h-64 overflow-y-auto border rounded-2xl bg-slate-50 mb-4">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-slate-100 sticky top-0">
+                                        <tr>
+                                            <th class="p-3 text-left">Prodotto</th>
+                                            <th class="p-3">Qtà</th>
+                                            <th class="p-3 text-right">Sub.</th>
+                                            <th class="p-3"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cart-tbody"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="bg-orto-light rounded-2xl p-4 text-sm space-y-1 mb-5">
+                                <div class="flex justify-between"><span>Imponibile</span><span id="val-imponibile">0.00 €</span></div>
+                                <div class="flex justify-between"><span>IVA 4%</span><span id="val-iva">0.00 €</span></div>
+                                <div class="flex justify-between font-bold text-base text-orto-dark border-t pt-2 mt-1">
+                                    <span>TOTALE</span>
+                                    <span id="val-totale" class="text-orto-terracotta">0.00 €</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 mb-5">
+                                <input type="text" id="ord-nome" placeholder="Nome e Cognome *" class="w-full px-4 py-3 bg-slate-50 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-orto-green">
+                                <input type="text" id="ord-indirizzo" placeholder="Indirizzo di consegna *" class="w-full px-4 py-3 bg-slate-50 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-orto-green">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="date" id="ord-data" class="px-4 py-3 bg-slate-50 border rounded-xl text-sm outline-none">
+                                    <input type="text" id="ord-note" placeholder="Note / Orario" class="px-4 py-3 bg-slate-50 border rounded-xl text-sm outline-none">
+                                </div>
+                            </div>
+
+                            <button onclick="inviaWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold py-4 rounded-2xl shadow-md flex items-center justify-center gap-2 mb-3 transition active:scale-[0.98]">
+                                <i class="fab fa-whatsapp text-xl"></i> Invia su WhatsApp
+                            </button>
+                            <button onclick="inviaEmail()" class="w-full bg-orto-green hover:bg-orto-dark text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition active:scale-[0.98]">
+                                <i class="fas fa-envelope"></i> Invia via Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA ADMIN -->
+            <div id="view-admin" class="hidden p-5 sm:p-8">
+                <div class="bg-slate-800 text-white rounded-2xl p-5 mb-6 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-orto-green rounded-xl flex items-center justify-center text-xl">👑</div>
+                        <div>
+                            <h3 class="font-bold">Pannello Gestione - Cesare</h3>
+                            <p class="text-xs text-slate-300">Prodotti, clienti e ordini</p>
+                        </div>
+                    </div>
+                    <button onclick="esciAdmin()" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm font-bold">Torna al Negozio</button>
+                </div>
+
+                <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-1">
+                    <button onclick="switchTab('prodotti')" class="admin-tab px-5 py-2.5 rounded-xl text-sm font-bold bg-orto-green text-white whitespace-nowrap">Prodotti</button>
+                    <button onclick="switchTab('ordini')" class="admin-tab px-5 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">Ordini <span id="ordini-count" class="ml-1">0</span></button>
+                    <button onclick="switchTab('clienti')" class="admin-tab px-5 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">Clienti</button>
+                    <button onclick="switchTab('impostazioni')" class="admin-tab px-5 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">Contatti</button>
+                </div>
+
+                <!-- Tab Prodotti -->
+                <div id="tab-prodotti" class="grid lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-5 bg-green-50 rounded-2xl p-6 border border-green-200">
+                        <h4 class="font-brand text-lg font-bold text-orto-dark mb-4">Aggiungi Prodotto</h4>
+                        <div class="space-y-3">
+                            <input type="text" id="add-nome" placeholder="Nome prodotto" class="w-full px-4 py-3 border rounded-xl outline-none focus:ring-2 focus:ring-orto-green">
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="number" step="0.10" id="add-prezzo" placeholder="Prezzo" value="2.50" class="px-4 py-3 border rounded-xl outline-none">
+                                <select id="add-unita" class="px-4 py-3 border rounded-xl outline-none">
+                                    <option value="kg">al kg</option>
+                                    <option value="l">al litro</option>
+                                    <option value="pz">al pezzo</option>
+                                    <option value="mazzo">al mazzo</option>
+                                </select>
+                            </div>
+                            <input type="url" id="add-img" placeholder="URL immagine (opzionale)" class="w-full px-4 py-3 border rounded-xl text-sm outline-none">
+                            <button onclick="aggiungiProdotto()" class="w-full bg-orto-green text-white font-bold py-3 rounded-xl">Pubblica Prodotto</button>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-7">
+                        <div class="bg-white border rounded-2xl overflow-hidden">
+                            <div class="bg-slate-50 px-4 py-3 border-b font-bold text-sm flex justify-between">
+                                Listino Attivo <span id="prod-count" class="bg-green-100 text-orto-dark px-2 py-0.5 rounded-full text-xs">0</span>
+                            </div>
+                            <div id="admin-prodotti" class="max-h-96 overflow-y-auto divide-y"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Ordini -->
+                <div id="tab-ordini" class="hidden">
+                    <div class="bg-white border rounded-2xl overflow-hidden">
+                        <div class="bg-slate-50 px-4 py-3 border-b font-bold">Storico Ordini</div>
+                        <div id="admin-ordini" class="divide-y"></div>
+                    </div>
+                </div>
+
+                <!-- Tab Clienti -->
+                <div id="tab-clienti" class="hidden grid lg:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 rounded-2xl p-6 border border-blue-200">
+                        <h4 class="font-brand text-lg font-bold text-blue-900 mb-4">Nuovo Cliente</h4>
+                        <div class="space-y-3">
+                            <input type="text" id="cli-nome" placeholder="Nominativo" class="w-full px-4 py-3 border rounded-xl outline-none">
+                            <input type="text" id="cli-dest" placeholder="Indirizzo" class="w-full px-4 py-3 border rounded-xl outline-none">
+                            <input type="text" id="cli-note" placeholder="Telefono / Note" class="w-full px-4 py-3 border rounded-xl outline-none">
+                            <button onclick="aggiungiCliente()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl">Salva Cliente</button>
+                        </div>
+                    </div>
+                    <div class="bg-white border rounded-2xl overflow-hidden">
+                        <div class="bg-slate-50 px-4 py-3 border-b font-bold">Rubrica Clienti</div>
+                        <div id="admin-clienti" class="max-h-96 overflow-y-auto divide-y"></div>
+                    </div>
+                </div>
+
+                <!-- Tab Impostazioni -->
+                <div id="tab-impostazioni" class="hidden max-w-lg">
+                    <div class="bg-amber-50 rounded-2xl p-6 border border-amber-200">
+                        <h4 class="font-brand text-lg font-bold text-amber-900 mb-4">Recapiti Ordini</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">WhatsApp (con 39, senza +)</label>
+                                <input type="text" id="cfg-whatsapp" placeholder="39333..." class="w-full px-4 py-3 border rounded-xl outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Email</label>
+                                <input type="email" id="cfg-email" placeholder="ordini@..." class="w-full px-4 py-3 border rounded-xl outline-none">
+                            </div>
+                            <button onclick="salvaContatti()" class="w-full bg-amber-600 text-white font-bold py-3 rounded-xl">Salva Recapiti</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Password -->
+    <div id="modal-password" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">🔐</div>
+            <h3 class="font-brand text-2xl font-bold mb-2">Area Riservata</h3>
+            <p class="text-sm text-slate-500 mb-6">Password per Cesare</p>
+            <input type="password" id="admin-pwd" placeholder="Password" class="w-full px-4 py-3 border rounded-xl mb-4 outline-none focus:ring-2 focus:ring-orto-green" onkeydown="if(event.key==='Enter') verificaPassword()">
+            <div class="flex gap-3">
+                <button onclick="chiudiModal()" class="flex-1 bg-slate-200 py-3 rounded-xl font-bold">Annulla</button>
+                <button onclick="verificaPassword()" class="flex-1 bg-orto-green text-white py-3 rounded-xl font-bold">Entra</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 z-50 pointer-events-none"></div>
+
+    <script>
+        const PASSWORD = 'cesare2026';
+        const IVA = 0.04;
+        const STORAGE = 'orto_cesare_v4';
+
+        let state = {
+            config: { whatsapp: '393331234567', email: 'ordini@ortodicesare.it' },
+            prodotti: [
+                { id: 1, nome: "Cicoria Campestre / Catalogna", prezzo: 2.20, unita: "kg", img: "images/cicoria.jpg" },
+                { id: 2, nome: "Finocchi Freschi", prezzo: 1.80, unita: "kg", img: "images/finocchi.jpg" },
+                { id: 3, nome: "Cavolo Romano (Broccolo Romanesco)", prezzo: 3.00, unita: "kg", img: "images/romanesco.jpg" },
+                { id: 4, nome: "Lattuga / Indivia / Scarola", prezzo: 2.00, unita: "kg", img: "images/insalate.jpg" },
+                { id: 5, nome: "Patate Gialle e Rosse", prezzo: 1.50, unita: "kg", img: "images/patate.jpg" },
+                { id: 6, nome: "Pomodori Cuore di Bue e Ciliegino", prezzo: 3.00, unita: "kg", img: "images/pomodori.jpg" },
+                { id: 7, nome: "Zucchine Romanesche con Fiore", prezzo: 2.50, unita: "kg", img: "images/zucchine.jpg" },
+                { id: 8, nome: "Mele Golden e Ruggine", prezzo: 2.70, unita: "kg", img: "images/mele.jpg" },
+                { id: 9, nome: "Cachi / Cachi Mela", prezzo: 2.70, unita: "kg", img: "images/cachi.jpg" },
+                { id: 10, nome: "Arance e Agrumi del Lazio", prezzo: 2.50, unita: "kg", img: "images/arance.jpg" },
+                { id: 11, nome: "Olio Extravergine d'Oliva", prezzo: 11.50, unita: "l", img: "images/olio.jpg" }
+            ],
+            clienti: [],
+            ordini: [],
+            carrello: []
+        };
+
+        function load() {
+            try {
+                const saved = localStorage.getItem(STORAGE);
+                if (saved) Object.assign(state, JSON.parse(saved));
+            } catch(e) {}
+            renderTutto();
+            const domani = new Date();
+            domani.setDate(domani.getDate() + 1);
+            document.getElementById('ord-data').valueAsDate = domani;
+        }
+
+        function save() {
+            localStorage.setItem(STORAGE, JSON.stringify({
+                config: state.config,
+                prodotti: state.prodotti,
+                clienti: state.clienti,
+                ordini: state.ordini
+            }));
+        }
+
+        function renderTutto() {
+            renderSelectProdotti();
+            renderCatalogo();
+            renderCarrello();
+            renderAdminProdotti();
+            renderAdminOrdini();
+            renderAdminClienti();
+            document.getElementById('cfg-whatsapp').value = state.config.whatsapp || '';
+            document.getElementById('cfg-email').value = state.config.email || '';
+        }
+
+        function renderSelectProdotti() {
+            const sel = document.getElementById('select-prodotto');
+            sel.innerHTML = '<option value="">-- Scegli un prodotto --</option>' + 
+                state.prodotti.map(p => `<option value="${p.id}">${p.nome} - ${p.prezzo.toFixed(2)} €/${p.unita}</option>`).join('');
+            sel.onchange = aggiornaPreview;
+        }
+
+        function aggiornaPreview() {
+            const id = document.getElementById('select-prodotto').value;
+            const prev = document.getElementById('select-preview');
+            const unitDisplay = document.getElementById('unit-display');
+            if (!id) { 
+                prev.innerHTML = ''; 
+                unitDisplay.textContent = 'unità';
+                return; 
+            }
+            const p = state.prodotti.find(x => x.id == id);
+            if (p) {
+                prev.innerHTML = `<img src="${p.img}" class="w-16 h-16 object-cover rounded-lg inline mr-2"> ${p.nome} a ${p.prezzo.toFixed(2)} € al ${p.unita}`;
+                // Blocco unità per l'olio: solo litri
+                if (p.unita === 'l' || p.nome.toLowerCase().includes('olio')) {
+                    unitDisplay.textContent = 'litri';
+                    unitDisplay.className = 'text-sm font-bold text-white bg-orto-terracotta px-3 py-3 rounded-xl min-w-[70px] text-center';
+                    unitDisplay.title = 'Olio disponibile solo in litri';
+                } else {
+                    unitDisplay.textContent = p.unita;
+                    unitDisplay.className = 'text-sm font-bold text-orto-dark bg-green-100 px-3 py-3 rounded-xl min-w-[70px] text-center';
+                    unitDisplay.title = '';
+                }
+            }
+        }
+
+        function aggiungiDaSelect() {
+            const id = parseInt(document.getElementById('select-prodotto').value);
+            const qty = parseFloat(document.getElementById('select-qty').value) || 1;
+            if (!id) return toast('Seleziona un prodotto', 'error');
+            aggiungiCarrello(id, qty);
+            document.getElementById('select-qty').value = 1;
+        }
+
+        function renderCatalogo() {
+            const grid = document.getElementById('catalogo-grid');
+            grid.innerHTML = state.prodotti.map(p => `
+                <div class="bg-white rounded-2xl border border-green-100 shadow-sm overflow-hidden hover:shadow-md transition">
+                    <div class="h-36 bg-slate-100 relative">
+                        <img src="${p.img || 'https://placehold.co/400x300/2e7d32/white?text=Orto'}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300/2e7d32/white?text=Orto'">
+                        <div class="absolute top-2 right-2 bg-white/95 backdrop-blur text-orto-dark text-xs font-bold px-2.5 py-1 rounded-full shadow">
+                            ${p.prezzo.toFixed(2)} € / ${p.unita}
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h4 class="font-bold text-sm leading-tight">${p.nome}</h4>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function aggiungiCarrello(id, qty = null) {
+            const p = state.prodotti.find(x => x.id === id);
+            if (!p) return;
+            qty = qty || parseFloat(document.getElementById(`qty-${id}`)?.value) || 1;
+            if (qty <= 0) return;
+
+            const exist = state.carrello.find(i => i.id === id);
+            if (exist) exist.qty += qty;
+            else state.carrello.push({ ...p, qty });
+
+            renderCarrello();
+            toast(`${qty} ${p.unita} di ${p.nome} aggiunto`);
+        }
+
+        function renderCarrello() {
+            const tbody = document.getElementById('cart-tbody');
+            document.getElementById('cart-count').textContent = `${state.carrello.length} articol${state.carrello.length === 1 ? 'o' : 'i'}`;
+
+            if (!state.carrello.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">Carrello vuoto</td></tr>';
+                aggiornaTotali(0);
+                return;
+            }
+
+            let imp = 0;
+            tbody.innerHTML = state.carrello.map((item, idx) => {
+                const sub = item.prezzo * item.qty;
+                imp += sub;
+                return `
+                    <tr class="border-t">
+                        <td class="p-3 font-medium">${item.nome}</td>
+                        <td class="p-3 text-center">${item.qty} ${item.unita}</td>
+                        <td class="p-3 text-right font-bold">${sub.toFixed(2)} €</td>
+                        <td class="p-3 text-center"><button onclick="rimuovi(${idx})" class="text-red-500"><i class="fas fa-times"></i></button></td>
+                    </tr>
+                `;
+            }).join('');
+            aggiornaTotali(imp);
+        }
+
+        function aggiornaTotali(imp) {
+            const iva = imp * IVA;
+            const tot = imp + iva;
+            document.getElementById('val-imponibile').textContent = imp.toFixed(2) + ' €';
+            document.getElementById('val-iva').textContent = iva.toFixed(2) + ' €';
+            document.getElementById('val-totale').textContent = tot.toFixed(2) + ' €';
+            document.getElementById('cart-header-total').textContent = tot.toFixed(2) + ' €';
+        }
+
+        function rimuovi(i) { state.carrello.splice(i, 1); renderCarrello(); }
+        function svuotaCarrello() { state.carrello = []; renderCarrello(); }
+
+        function preparaOrdine() {
+            const nome = document.getElementById('ord-nome').value.trim();
+            const indirizzo = document.getElementById('ord-indirizzo').value.trim();
+            const data = document.getElementById('ord-data').value;
+            const note = document.getElementById('ord-note').value.trim();
+
+            if (!nome || !indirizzo) { toast('Inserisci nome e indirizzo', 'error'); return null; }
+            if (!state.carrello.length) { toast('Carrello vuoto', 'error'); return null; }
+
+            const imp = state.carrello.reduce((s, i) => s + i.prezzo * i.qty, 0);
+            const iva = imp * IVA;
+            const tot = imp + iva;
+
+            let msg = `🌿 *NUOVO ORDINE - L'ORTO DI CESARE*\n\n`;
+            msg += `👤 *Cliente:* ${nome}\n📍 *Indirizzo:* ${indirizzo}\n`;
+            if (data) msg += `📅 *Consegna:* ${data.split('-').reverse().join('/')}\n`;
+            if (note) msg += `📝 *Note:* ${note}\n`;
+            msg += `\n🛒 *Prodotti:*\n`;
+            state.carrello.forEach(i => {
+                msg += `• ${i.nome}: ${i.qty} ${i.unita} (${(i.prezzo*i.qty).toFixed(2)} €)\n`;
+            });
+            msg += `\n💶 *Imponibile:* ${imp.toFixed(2)} €\n💶 *IVA 4%:* ${iva.toFixed(2)} €\n✅ *TOTALE:* *${tot.toFixed(2)} €*`;
+
+            state.ordini.unshift({
+                id: Date.now(),
+                data: new Date().toLocaleString('it-IT'),
+                cliente: nome,
+                indirizzo,
+                totale: tot,
+                dettaglio: state.carrello.map(i => `${i.nome} x${i.qty}`).join(', ')
+            });
+            save();
+            renderAdminOrdini();
+
+            return msg;
+        }
+
+        function inviaWhatsApp() {
+            const msg = preparaOrdine();
+            if (!msg) return;
+            const num = (state.config.whatsapp || '393331234567').replace(/\D/g, '');
+            window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
+            toast('Apertura WhatsApp...');
+        }
+
+        function inviaEmail() {
+            const msg = preparaOrdine();
+            if (!msg) return;
+            const email = state.config.email || 'ordini@ortodicesare.it';
+            const nome = document.getElementById('ord-nome').value.trim();
+            window.location.href = `mailto:${email}?subject=${encodeURIComponent('Ordine L\'Orto di Cesare - ' + nome)}&body=${encodeURIComponent(msg)}`;
+        }
+
+        // ADMIN
+        function richiediAccessoAdmin() {
+            document.getElementById('modal-password').classList.remove('hidden');
+            document.getElementById('modal-password').classList.add('flex');
+            document.getElementById('admin-pwd').value = '';
+            document.getElementById('admin-pwd').focus();
+        }
+        function chiudiModal() {
+            document.getElementById('modal-password').classList.add('hidden');
+            document.getElementById('modal-password').classList.remove('flex');
+        }
+        function verificaPassword() {
+            if (document.getElementById('admin-pwd').value === PASSWORD) {
+                chiudiModal();
+                impostaModalita('admin');
+                toast('Accesso effettuato');
+            } else toast('Password errata', 'error');
+        }
+        function esciAdmin() { impostaModalita('cliente'); }
+
+        function impostaModalita(modo) {
+            document.getElementById('view-cliente').classList.toggle('hidden', modo !== 'cliente');
+            document.getElementById('view-admin').classList.toggle('hidden', modo !== 'admin');
+            document.getElementById('btn-cliente').className = modo === 'cliente' 
+                ? 'px-5 py-2.5 rounded-xl font-bold text-sm bg-orto-green text-white'
+                : 'px-5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-green-50';
+            document.getElementById('btn-admin').className = modo === 'admin'
+                ? 'px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-800 text-white'
+                : 'px-5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:bg-green-50';
+        }
+
+        function switchTab(tab) {
+            ['prodotti','ordini','clienti','impostazioni'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.querySelectorAll('.admin-tab').forEach((b,i) => {
+                const tabs = ['prodotti','ordini','clienti','impostazioni'];
+                b.className = tabs[i] === tab 
+                    ? 'admin-tab px-5 py-2.5 rounded-xl text-sm font-bold bg-orto-green text-white whitespace-nowrap'
+                    : 'admin-tab px-5 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 whitespace-nowrap';
+            });
+        }
+
+        function aggiungiProdotto() {
+            const nome = document.getElementById('add-nome').value.trim();
+            const prezzo = parseFloat(document.getElementById('add-prezzo').value);
+            const unita = document.getElementById('add-unita').value;
+            const img = document.getElementById('add-img').value.trim();
+            if (!nome || isNaN(prezzo)) return toast('Dati mancanti', 'error');
+
+            state.prodotti.push({
+                id: Date.now(),
+                nome, prezzo, unita,
+                img: img || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=70'
+            });
+            document.getElementById('add-nome').value = '';
+            document.getElementById('add-img').value = '';
+            save();
+            renderTutto();
+            toast('Prodotto aggiunto');
+        }
+
+        function eliminaProdotto(id) {
+            state.prodotti = state.prodotti.filter(p => p.id !== id);
+            save();
+            renderTutto();
+        }
+
+        function renderAdminProdotti() {
+            const el = document.getElementById('admin-prodotti');
+            document.getElementById('prod-count').textContent = state.prodotti.length;
+            el.innerHTML = state.prodotti.map(p => `
+                <div class="flex items-center gap-4 p-4 hover:bg-slate-50">
+                    <img src="${p.img}" class="w-12 h-12 object-cover rounded-xl" onerror="this.src='https://placehold.co/100/2e7d32/white?text=+'">
+                    <div class="flex-1">
+                        <div class="font-bold">${p.nome}</div>
+                        <div class="text-xs text-slate-500">${p.prezzo.toFixed(2)} € / ${p.unita}</div>
+                    </div>
+                    <button onclick="eliminaProdotto(${p.id})" class="text-red-500 hover:bg-red-50 p-2 rounded-lg"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('') || '<div class="p-6 text-center text-slate-400">Nessun prodotto</div>';
+        }
+
+        function aggiungiCliente() {
+            const nome = document.getElementById('cli-nome').value.trim();
+            const dest = document.getElementById('cli-dest').value.trim();
+            if (!nome) return;
+            state.clienti.push({ id: Date.now(), nome, dest, note: document.getElementById('cli-note').value });
+            document.getElementById('cli-nome').value = '';
+            document.getElementById('cli-dest').value = '';
+            save();
+            renderAdminClienti();
+            toast('Cliente aggiunto');
+        }
+
+        function renderAdminClienti() {
+            document.getElementById('admin-clienti').innerHTML = state.clienti.map(c => `
+                <div class="p-4 hover:bg-slate-50 flex justify-between items-center">
+                    <div>
+                        <div class="font-bold">${c.nome}</div>
+                        <div class="text-xs text-slate-500">${c.dest}</div>
+                    </div>
+                    <button onclick="state.clienti = state.clienti.filter(x=>x.id!==${c.id}); save(); renderAdminClienti()" class="text-red-500"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('') || '<div class="p-6 text-center text-slate-400">Nessun cliente</div>';
+        }
+
+        function renderAdminOrdini() {
+            document.getElementById('ordini-count').textContent = state.ordini.length;
+            document.getElementById('admin-ordini').innerHTML = state.ordini.map(o => `
+                <div class="p-4 hover:bg-slate-50">
+                    <div class="flex justify-between">
+                        <div class="font-bold">${o.cliente}</div>
+                        <div class="font-bold text-orto-terracotta">${o.totale.toFixed(2)} €</div>
+                    </div>
+                    <div class="text-xs text-slate-500">${o.data} • ${o.indirizzo}</div>
+                    <div class="text-sm mt-1">${o.dettaglio}</div>
+                </div>
+            `).join('') || '<div class="p-8 text-center text-slate-400">Nessun ordine ancora</div>';
+        }
+
+        function salvaContatti() {
+            state.config.whatsapp = document.getElementById('cfg-whatsapp').value.trim();
+            state.config.email = document.getElementById('cfg-email').value.trim();
+            save();
+            toast('Recapiti salvati');
+        }
+
+        function toast(msg, type = 'success') {
+            const el = document.createElement('div');
+            el.className = `px-5 py-3 rounded-2xl shadow-xl text-white font-medium fade-in ${type === 'error' ? 'bg-red-600' : 'bg-orto-dark'}`;
+            el.textContent = msg;
+            document.getElementById('toast').appendChild(el);
+            setTimeout(() => el.remove(), 2800);
+        }
+
+        // PWA Install
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('pwa-install-banner').classList.remove('hidden');
+        });
+        document.getElementById('btn-pwa-install').onclick = async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                document.getElementById('pwa-install-banner').classList.add('hidden');
+            }
+        };
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(()=>{});
+        }
+
+        load();
+    </script>
+</body>
+</html>
