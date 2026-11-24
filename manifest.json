@@ -1,0 +1,13 @@
+{
+  "name": "Cesare Rosati - L'Orto di Cesare",
+  "short_name": "Orto di Cesare",
+  "description": "App ordini frutta e verdura fresca",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f8f1",
+  "theme_color": "#1b5e20",
+  "icons": [
+    {"src": "logo.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "logo.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}

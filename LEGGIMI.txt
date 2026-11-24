@@ -1,0 +1,5 @@
+# L'Orto di Cesare - App Ordini
+
+Applicazione web professionale per gestire gli ordini di frutta e verdura di Cesare Rosati.
+
+Apri index.html o visita il sito GitHub Pages.
